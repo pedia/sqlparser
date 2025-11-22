@@ -1,0 +1,17 @@
+[package]
+name = "sqlparser-go"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = "1.0.228"
+serde_json = { version = "1.0.145" }
+sqlparser = { version = "0.59.0", features = ["serde"] }
+
+[features]
+# sqlparser_go = ["serde_json", "serde"]
+
+[lib]
+name = "sqlparser_go"
+path = "lib/lib.rs"
+crate-type = ["staticlib"]
