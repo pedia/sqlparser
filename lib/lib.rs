@@ -2,16 +2,20 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::ptr;
 
-use sqlparser::dialect::{GenericDialect, SQLiteDialect};
+use sqlparser::dialect::dialect_from_str;
 use sqlparser::parser::Parser;
 
 #[unsafe(no_mangle)]
-extern "C" fn parse(csql: *const c_char) -> *mut c_char {
-    let cs = unsafe { CStr::from_ptr(csql) };
-    let sql = cs.to_string_lossy();
+pub extern "C" fn parse(cdialect: *const c_char, csql: *const c_char) -> *mut c_char {
+    let dialect_name = unsafe { CStr::from_ptr(cdialect) }.to_string_lossy();
+    let dialect = dialect_from_str(dialect_name);
+    if dialect.is_none() {
+        return ptr::null_mut()
+    }
 
-    let dialect = SQLiteDialect {};
-    let result = Parser::parse_sql(&dialect, &sql);
+    let dialect = dialect.unwrap();
+    let sql = unsafe { CStr::from_ptr(csql) }.to_string_lossy();
+    let result = Parser::parse_sql(&*dialect, &sql);
     match result {
         Ok(statements) => {
             let serialized = serde_json::to_string(&statements).unwrap();
