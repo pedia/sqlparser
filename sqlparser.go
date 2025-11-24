@@ -18,6 +18,8 @@ import (
 	"unsafe"
 )
 
+// dialect should be: generic, mysql, postgresql, hive, sqlite, snowflake,
+// redshift, mssql, clickhouse, bigquery, ansi, duckdb, databricks
 func Parse(dialect, sql string) ([]Statement, error) {
 	csql := C.CString(sql)
 	defer C.free(unsafe.Pointer(csql))
@@ -39,6 +41,23 @@ func Parse(dialect, sql string) ([]Statement, error) {
 
 type Document []Statement
 
+type Statement struct {
+	CreateTable CreateTable `json:"CreateTable"`
+}
+
+type CreateTable struct {
+	Name []struct {
+		Identifier struct {
+			Value      string `json:"value"`
+			QuoteStyle string `json:"quote_style"`
+			Span       Span   `json:"span"`
+		}
+	} `json:"name"`
+	Columns      []Column `json:"columns"`
+	TableOptions string   `json:"table_options"`
+	Strict       bool     `json:"strict"`
+}
+
 type Span struct {
 	Start struct {
 		Line   int `json:"line"`
@@ -48,25 +67,6 @@ type Span struct {
 		Line   int `json:"line"`
 		Column int `json:"end"` // Corrected: original JSON uses "end" key
 	} `json:"end"`
-}
-
-type wrapid struct {
-	Identifier Identifier
-}
-
-type Identifier struct {
-	Value      string `json:"value"`
-	QuoteStyle string `json:"quote_style"`
-	Span       Span   `json:"span"`
-}
-
-type PrimaryKeyData struct {
-	Name            any   `json:"name"`
-	IndexName       any   `json:"index_name"`
-	IndexType       any   `json:"index_type"`
-	Columns         []any `json:"columns"`
-	IndexOptions    []any `json:"index_options"`
-	Characteristics any   `json:"characteristics"`
 }
 
 type ColumnOption struct {
@@ -147,15 +147,4 @@ func (c Column) AutoIncrement() bool {
 		}
 	}
 	return false
-}
-
-type CreateTable struct {
-	Name         []wrapid `json:"name"`
-	Columns      []Column `json:"columns"`
-	TableOptions string   `json:"table_options"`
-	Strict       bool     `json:"strict"`
-}
-
-type Statement struct {
-	CreateTable CreateTable `json:"CreateTable"`
 }
