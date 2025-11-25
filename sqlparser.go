@@ -1,6 +1,5 @@
-package sqlparser
-
 //go:generate cargo build --release
+package sqlparser
 
 /*
 #cgo LDFLAGS: -Ltarget/release -lsqlparser_go

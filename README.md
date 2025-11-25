@@ -18,3 +18,11 @@ for _, col := range stmt.Columns {
         col.PrimaryKey(), col.AutoIncrement())
 }
 ```
+
+# TODO:
+As a package, `cargo build --release` or `go generate` won't be executed automatically.
+
+Add `replace` in `go.mod` is ugly.
+```
+replace github.com/pedia/sqlparser => ../sqlparser
+```
